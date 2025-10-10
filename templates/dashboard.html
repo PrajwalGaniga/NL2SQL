@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniDB - Database Schema Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --light: #f8f9fa;
+            --dark: #2c3e50;
+            --gray: #6c757d;
+            --light-gray: #e9ecef;
+            --border: #dee2e6;
+            --card-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            --bg-color: #f8f9fa;
+            --text-color: #2c3e50;
+            --card-bg: #ffffff;
+            --header-bg: #ffffff;
+        }
+
+        .dark-mode {
+            --primary: #3498db;
+            --secondary: #2980b9;
+            --light: #1a1a1a;
+            --dark: #f8f9fa;
+            --gray: #a0a0a0;
+            --light-gray: #2d2d2d;
+            --border: #404040;
+            --card-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --card-bg: #1e1e1e;
+            --header-bg: #1a1a1a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 1.5rem 0;
+            border-bottom: 1px solid var(--border);
+            background-color: var(--header-bg);
+            transition: background-color 0.3s ease;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .header p {
+            color: var(--gray);
+            font-size: 1rem;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 1.5rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: color 0.3s ease;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            padding: 0.8rem 1.5rem;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            text-decoration: none;
+            color: var(--text-color);
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .nav-btn:hover {
+            background: var(--light-gray);
+            transform: translateY(-2px);
+        }
+
+        .nav-btn.active {
+            background: var(--secondary);
+            color: white;
+            border-color: var(--secondary);
+        }
+
+        .schema-container {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 2rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .schema-section {
+            margin-bottom: 2rem;
+        }
+
+        .schema-section h2 {
+            color: var(--primary);
+            font-size: 1.4rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--light-gray);
+            font-weight: 600;
+        }
+
+        .table-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .table-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+            border-left: 4px solid var(--secondary);
+            transition: transform 0.2s ease, background-color 0.3s ease;
+        }
+
+        .table-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .table-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .table-meta {
+            font-size: 0.8rem;
+            color: var(--gray);
+            background: var(--light-gray);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        .table-columns {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .column-item {
+            background: var(--light);
+            padding: 0.8rem;
+            border-radius: 6px;
+            border-left: 3px solid var(--gray);
+            transition: background-color 0.3s ease;
+        }
+
+        .primary-key {
+            border-left-color: #e74c3c;
+        }
+
+        .foreign-key {
+            border-left-color: #3498db;
+        }
+
+        .column-name {
+            font-weight: 500;
+            color: var(--text-color);
+            margin-bottom: 0.2rem;
+        }
+
+        .column-type {
+            color: var(--gray);
+            font-size: 0.85rem;
+        }
+
+        .column-meta {
+            font-size: 0.8rem;
+            color: var(--gray);
+            margin-top: 0.3rem;
+        }
+
+        .relationship-map {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+            transition: background-color 0.3s ease;
+        }
+
+        .relationship-map h3 {
+            color: var(--primary);
+            margin-bottom: 1.2rem;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .relationships {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .relationship {
+            background: var(--light);
+            padding: 1rem;
+            border-radius: 6px;
+            text-align: center;
+            transition: background-color 0.3s ease;
+        }
+
+        .relationship-table {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .relationship-arrow {
+            margin: 0.5rem 0;
+            color: var(--secondary);
+        }
+
+        /* Authentication Modal */
+        .auth-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .auth-container {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 400px;
+            transition: background-color 0.3s ease;
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .auth-header h2 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .auth-header p {
+            color: var(--gray);
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 1rem;
+            background: var(--light);
+            color: var(--text-color);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .auth-btn {
+            width: 100%;
+            padding: 0.8rem;
+            background: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .auth-btn:hover {
+            background: #2980b9;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            text-align: center;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0.8rem;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .table-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-btn {
+                padding: 0.7rem 1.2rem;
+                font-size: 0.9rem;
+            }
+            
+            .relationships {
+                grid-template-columns: 1fr;
+            }
+            
+            .theme-toggle {
+                position: relative;
+                top: auto;
+                right: auto;
+                margin-top: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Authentication Modal -->
+    <div id="authModal" class="auth-modal">
+        <div class="auth-container">
+            <div class="auth-header">
+                <h2><i class="fas fa-lock"></i> Admin Access</h2>
+                <p>Enter password to access the dashboard</p>
+            </div>
+            <form id="authForm">
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter admin password" required>
+                </div>
+                <button type="submit" class="auth-btn">Access Dashboard</button>
+                <div id="errorMessage" class="error-message hidden">Incorrect password. Please try again.</div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Content (Hidden until authenticated) -->
+    <div id="mainContent" class="hidden">
+        <div class="container">
+            <div class="header">
+                <h1><i class="fas fa-database"></i> UniDB Schema Dashboard</h1>
+                <p>Complete Database Schema Overview with Table Relationships</p>
+                <button id="themeToggle" class="theme-toggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+
+            <div class="navigation">
+                <a href="/" class="nav-btn active">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+                <a href="/nl2sql" class="nav-btn">
+                    <i class="fas fa-comment-dots"></i> Natural Language Query
+                </a>
+                <a href="/filter" class="nav-btn">
+                    <i class="fas fa-filter"></i> Advanced Filter
+                </a>
+            </div>
+
+            <div class="schema-container">
+                <div class="schema-section">
+                    <h2><i class="fas fa-table"></i> Database Tables Schema</h2>
+                    
+                    <div class="table-grid">
+                        <!-- Department Table -->
+                        <div class="table-card">
+                            <div class="table-header">
+                                <div class="table-name">department</div>
+                                <div class="table-meta">Primary Table</div>
+                            </div>
+                            <div class="table-columns">
+                                <div class="column-item primary-key">
+                                    <div class="column-name">department_id</div>
+                                    <div class="column-type">INT PRIMARY KEY</div>
+                                    <div class="column-meta">Unique identifier</div>
+                                </div>
+                                <div class="column-item">
+                                    <div class="column-name">department_name</div>
+                                    <div class="column-type">VARCHAR(100) UNIQUE</div>
+                                    <div class="column-meta">Department name</div>
+                                </div>
+                                <div class="column-item">
+                                    <div class="column-name">established_date</div>
+                                    <div class="column-type">DATE</div>
+                                    <div class="column-meta">Establishment date</div>
+                                </div>
+                                <div class="column-item">
+                                    <div class="column-name">hod_name</div>
+                                    <div class="column-type">VARCHAR(100)</div>
+                                    <div class="column-meta">Head of Department</div>
+                                </div>
+                                <div class="column-item">
+                                    <div class="column-name">contact_email</div>
+                                    <div class="column-type">VARCHAR(100)</div>
+                                    <div class="column-meta">Contact email</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Student Table -->
+                        <div class="table-card">
+                            <div class="table-header">
+                                <div class="table-name">student</div>
+                                <div class="table-meta">Core Entity</div>
+                            </div>
+                            <div class="table-columns">
+                                <div class="column-item primary-key">
+                                    <div class="column-name">student_id</div>
+                                    <div class="column-type">INT PRIMARY KEY</div>
+                                </div>
+                                <div class="column-item">
+                                    <div class="column-name">first_name, last_name</div>
+                                    <div class="column-type">VARCHAR(50)</div>
+                                </div>
+                                <div class="column-item">
+                                    <div class="column-name">gender</div>
+                                    <div class="column-type">VARCHAR(10)</div>
+                                </div>
+                                <div class="column-item">
+                                    <div class="column-name">dob</div>
+                                    <div class="column-type">DATE</div>
+                                </div>
+                                <div class="column-item">
+                                    <div class="column-name">email</div>
+                                    <div class="column-type">VARCHAR(100) UNIQUE</div>
+                                </div>
+                                <div class="column-item foreign-key">
+                                    <div class="column-name">department_id</div>
+                                    <div class="column-type">INT FOREIGN KEY</div>
+                                    <div class="column-meta">References department</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Faculty Table -->
+                        <div class="table-card">
+                            <div class="table-header">
+                                <div class="table-name">faculty</div>
+                                <div class="table-meta">Staff Management</div>
+                            </div>
+                            <div class="table-columns">
+                                <div class="column-item primary-key">
+                                    <div class="column-name">faculty_id</div>
+                                    <div class="column-type">INT PRIMARY KEY</div>
+                                </div>
+                                <div class="column-item">
+                                    <div class="column-name">salary</div>
+                                    <div class="column-type">FLOAT</div>
+                                </div>
+                                <div class="column-item">
+                                    <div class="column-name">designation</div>
+                                    <div class="column-type">VARCHAR(50)</div>
+                                </div>
+                                <div class="column-item foreign-key">
+                                    <div class="column-name">department_id</div>
+                                    <div class="column-type">INT FOREIGN KEY</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Course Table -->
+                        <div class="table-card">
+                            <div class="table-header">
+                                <div class="table-name">course</div>
+                                <div class="table-meta">Academic Programs</div>
+                            </div>
+                            <div class="table-columns">
+                                <div class="column-item primary-key">
+                                    <div class="column-name">course_id</div>
+                                    <div class="column-type">INT PRIMARY KEY</div>
+                                </div>
+                                <div class="column-item">
+                                    <div class="column-name">course_name</div>
+                                    <div class="column-type">VARCHAR(100)</div>
+                                </div>
+                                <div class="column-item">
+                                    <div class="column-name">credits</div>
+                                    <div class="column-type">INT</div>
+                                </div>
+                                <div class="column-item foreign-key">
+                                    <div class="column-name">department_id</div>
+                                    <div class="column-type">INT FOREIGN KEY</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Subject Table -->
+                        <div class="table-card">
+                            <div class="table-header">
+                                <div class="table-name">subject</div>
+                                <div class="table-meta">Course Components</div>
+                            </div>
+                            <div class="table-columns">
+                                <div class="column-item primary-key">
+                                    <div class="column-name">subject_id</div>
+                                    <div class="column-type">INT PRIMARY KEY</div>
+                                </div>
+                                <div class="column-item">
+                                    <div class="column-name">subject_name</div>
+                                    <div class="column-type">VARCHAR(100)</div>
+                                </div>
+                                <div class="column-item foreign-key">
+                                    <div class="column-name">course_id</div>
+                                    <div class="column-type">INT FOREIGN KEY</div>
+                                </div>
+                                <div class="column-item foreign-key">
+                                    <div class="column-name">faculty_id</div>
+                                    <div class="column-type">INT FOREIGN KEY</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="relationship-map">
+                    <h3><i class="fas fa-project-diagram"></i> Database Relationships</h3>
+                    <div class="relationships">
+                        <div class="relationship">
+                            <div class="relationship-table">department</div>
+                            <div class="relationship-arrow"><i class="fas fa-arrow-down"></i></div>
+                            <div>References: student, faculty, course</div>
+                        </div>
+                        <div class="relationship">
+                            <div class="relationship-table">student</div>
+                            <div class="relationship-arrow"><i class="fas fa-arrow-down"></i></div>
+                            <div>References: enrollment, marks, attendance</div>
+                        </div>
+                        <div class="relationship">
+                            <div class="relationship-table">course</div>
+                            <div class="relationship-arrow"><i class="fas fa-arrow-down"></i></div>
+                            <div>References: subject, enrollment</div>
+                        </div>
+                        <div class="relationship">
+                            <div class="relationship-table">faculty</div>
+                            <div class="relationship-arrow"><i class="fas fa-arrow-down"></i></div>
+                            <div>References: subject</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const authModal = document.getElementById('authModal');
+            const mainContent = document.getElementById('mainContent');
+            const authForm = document.getElementById('authForm');
+            const passwordInput = document.getElementById('password');
+            const errorMessage = document.getElementById('errorMessage');
+            const themeToggle = document.getElementById('themeToggle');
+            
+            // Check if already authenticated
+            if (localStorage.getItem('authenticated') === 'true') {
+                authModal.classList.add('hidden');
+                mainContent.classList.remove('hidden');
+            }
+            
+            // Handle form submission
+            authForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                if (passwordInput.value === 'admin') {
+                    // Correct password
+                    localStorage.setItem('authenticated', 'true');
+                    authModal.classList.add('hidden');
+                    mainContent.classList.remove('hidden');
+                } else {
+                    // Incorrect password
+                    errorMessage.classList.remove('hidden');
+                    passwordInput.value = '';
+                    passwordInput.focus();
+                }
+            });
+            
+            // Add click effects to table cards
+            const tableCards = document.querySelectorAll('.table-card');
+            tableCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    this.classList.toggle('expanded');
+                });
+            });
+            
+            // Theme toggle functionality
+            themeToggle.addEventListener('click', function() {
+                document.body.classList.toggle('dark-mode');
+                
+                // Update icon
+                const icon = this.querySelector('i');
+                if (document.body.classList.contains('dark-mode')) {
+                    icon.classList.remove('fa-moon');
+                    icon.classList.add('fa-sun');
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    icon.classList.remove('fa-sun');
+                    icon.classList.add('fa-moon');
+                    localStorage.setItem('theme', 'light');
+                }
+            });
+            
+            // Check for saved theme preference
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                themeToggle.querySelector('i').classList.remove('fa-moon');
+                themeToggle.querySelector('i').classList.add('fa-sun');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniDB - Advanced Data Filter</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --accent: #e74c3c;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --info: #17a2b8;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --gradient-start: #667eea;
+            --gradient-end: #764ba2;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+            min-height: 100vh;
+            color: var(--dark);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            padding: 1rem 2rem;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 10px;
+            text-decoration: none;
+            color: var(--primary);
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            background: white;
+        }
+
+        .nav-btn.active {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .sidebar {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            height: fit-content;
+        }
+
+        .content {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .section-title {
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .table-list {
+            list-style: none;
+        }
+
+        .table-item {
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            background: var(--light);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .table-item:hover {
+            background: #d5dbdb;
+            transform: translateX(5px);
+        }
+
+        .table-item.active {
+            background: var(--secondary);
+            color: white;
+            border-left-color: var(--primary);
+        }
+
+        .filter-section {
+            margin-bottom: 2rem;
+        }
+
+        .filter-group {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .filter-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .filter-title {
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .filter-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .filter-controls {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .filter-input {
+            padding: 0.75rem;
+            border: 2px solid var(--light);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .filter-input:focus {
+            outline: none;
+            border-color: var(--secondary);
+        }
+
+        .filter-select {
+            padding: 0.75rem;
+            border: 2px solid var(--light);
+            border-radius: 8px;
+            background: white;
+            font-size: 1rem;
+        }
+
+        .range-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: var(--light);
+            color: var(--dark);
+        }
+
+        .btn-secondary:hover {
+            background: #bdc3c7;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+        }
+
+        .results-container {
+            max-height: 600px;
+            overflow-y: auto;
+            margin-bottom: 1.5rem;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .results-table th {
+            background: var(--primary);
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            position: sticky;
+            top: 0;
+        }
+
+        .results-table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--light);
+        }
+
+        .results-table tr:hover {
+            background: var(--light);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .spinner {
+            border: 4px solid var(--light);
+            border-top: 4px solid var(--secondary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .success-message {
+            background: #c6f6d5;
+            color: #276749;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .filter-count {
+            background: var(--info);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            margin-left: 0.5rem;
+        }
+
+        .column-filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .column-filter {
+            background: var(--light);
+            padding: 1rem;
+            border-radius: 8px;
+        }
+
+        .column-name {
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-filter"></i> Advanced Data Filter</h1>
+            <p>Filter and explore your data with advanced filtering options</p>
+        </div>
+
+        <div class="navigation">
+            <a href="/" class="nav-btn">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+            <a href="/nl2sql" class="nav-btn">
+                <i class="fas fa-comment-dots"></i> Natural Language Query
+            </a>
+            <a href="/filter" class="nav-btn active">
+                <i class="fas fa-filter"></i> Advanced Filter
+            </a>
+        </div>
+
+        <div class="main-content">
+            <div class="sidebar">
+                <h2 class="section-title">
+                    <i class="fas fa-table"></i> Database Tables
+                </h2>
+                <ul class="table-list" id="tableList">
+                    <!-- Tables will be populated dynamically -->
+                </ul>
+            </div>
+
+            <div class="content">
+                <div id="tableInfo">
+                    <h2 class="section-title">
+                        <i class="fas fa-info-circle"></i> Select a table to start filtering
+                    </h2>
+                    <p>Choose a table from the sidebar to view its data and apply filters.</p>
+                </div>
+
+                <div id="filterInterface" style="display: none;">
+                    <h2 class="section-title" id="currentTableTitle">
+                        <i class="fas fa-filter"></i> Filter Data: 
+                        <span id="tableNameDisplay"></span>
+                    </h2>
+
+                    <div class="filter-section">
+                        <div class="filter-group">
+                            <div class="filter-header">
+                                <div class="filter-title">Quick Filters</div>
+                            </div>
+                            
+                            <div class="column-filters" id="quickFilters">
+                                <!-- Quick filters will be populated dynamically -->
+                            </div>
+
+                            <div class="filter-actions">
+                                <button class="btn btn-primary" onclick="applyFilters()">
+                                    <i class="fas fa-play"></i> Apply Filters
+                                </button>
+                                <button class="btn btn-secondary" onclick="clearFilters()">
+                                    <i class="fas fa-eraser"></i> Clear All
+                                </button>
+                                <button class="btn btn-success" onclick="loadAllData()">
+                                    <i class="fas fa-sync"></i> Load All Data
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="filter-group">
+                            <div class="filter-header">
+                                <div class="filter-title">Advanced Filters</div>
+                            </div>
+                            
+                            <div id="advancedFilters">
+                                <!-- Advanced filters will be populated dynamically -->
+                            </div>
+
+                            <div class="filter-actions">
+                                <button class="btn btn-primary" onclick="applyAdvancedFilters()">
+                                    <i class="fas fa-cog"></i> Apply Advanced Filters
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="results-section">
+                        <h2 class="section-title">
+                            <i class="fas fa-chart-bar"></i> Filtered Results
+                            <span class="filter-count" id="resultCount">0 records</span>
+                        </h2>
+                        
+                        <div class="loading" id="loading">
+                            <div class="spinner"></div>
+                            <p>Loading data...</p>
+                        </div>
+
+                        <div id="resultsArea">
+                            <div class="results-container">
+                                <table class="results-table" id="resultsTable">
+                                    <!-- Results will be populated here -->
+                                </table>
+                            </div>
+                        </div>
+
+                        <div id="errorMessage" class="error-message" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTable = null;
+        let tableSchema = null;
+        let allTableData = null;
+
+        // Load tables on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTables();
+        });
+
+        async function loadTables() {
+            try {
+                const response = await fetch('/api/tables');
+                const data = await response.json();
+                displayTables(data.tables);
+            } catch (error) {
+                console.error('Error loading tables:', error);
+            }
+        }
+
+        function displayTables(tables) {
+            const tableList = document.getElementById('tableList');
+            tableList.innerHTML = '';
+
+            tables.forEach(table => {
+                const li = document.createElement('li');
+                li.className = 'table-item';
+                li.textContent = table;
+                li.onclick = () => selectTable(table);
+                tableList.appendChild(li);
+            });
+        }
+
+        async function selectTable(tableName) {
+            // Update UI
+            document.querySelectorAll('.table-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            currentTable = tableName;
+            document.getElementById('tableInfo').style.display = 'none';
+            document.getElementById('filterInterface').style.display = 'block';
+            document.getElementById('tableNameDisplay').textContent = tableName;
+
+            // Load table schema and data
+            await loadTableSchema(tableName);
+            await loadTableData(tableName);
+            createFilterInterface();
+        }
+
+        async function loadTableSchema(tableName) {
+            try {
+                const response = await fetch(`/api/table-schema/${tableName}`);
+                tableSchema = await response.json();
+            } catch (error) {
+                console.error('Error loading table schema:', error);
+            }
+        }
+
+        async function loadTableData(tableName, filters = {}) {
+            showLoading();
+            
+            try {
+                const response = await fetch('/api/table-data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        table_name: tableName,
+                        filters: filters,
+                        limit: 1000
+                    })
+                });
+
+                const result = await response.json();
+                hideLoading();
+
+                if (result.success) {
+                    allTableData = result.data;
+                    displayResults(result);
+                } else {
+                    showError(result.error);
+                }
+            } catch (error) {
+                hideLoading();
+                showError('Network error: ' + error.message);
+            }
+        }
+
+        async function loadAllData() {
+            if (currentTable) {
+                await loadTableData(currentTable);
+            }
+        }
+
+        function createFilterInterface() {
+            if (!tableSchema || !tableSchema.columns) return;
+
+            createQuickFilters();
+            createAdvancedFilters();
+        }
+
+        function createQuickFilters() {
+            const quickFilters = document.getElementById('quickFilters');
+            quickFilters.innerHTML = '';
+
+            tableSchema.columns.forEach(column => {
+                const filterDiv = document.createElement('div');
+                filterDiv.className = 'column-filter';
+                
+                filterDiv.innerHTML = `
+                    <div class="column-name">${column.name}</div>
+                    <input type="text" 
+                           class="filter-input" 
+                           id="quick_${column.name}" 
+                           placeholder="Filter ${column.name}..."
+                           onkeyup="debounce(applyFilters, 500)">
+                `;
+                
+                quickFilters.appendChild(filterDiv);
+            });
+        }
+
+        function createAdvancedFilters() {
+            const advancedFilters = document.getElementById('advancedFilters');
+            advancedFilters.innerHTML = '';
+
+            tableSchema.columns.forEach(column => {
+                const filterDiv = document.createElement('div');
+                filterDiv.className = 'filter-group';
+                
+                filterDiv.innerHTML = `
+                    <div class="filter-header">
+                        <div class="filter-title">${column.name} (${column.type})</div>
+                    </div>
+                    <div class="filter-controls">
+                        <select class="filter-select" id="adv_operator_${column.name}">
+                            <option value="contains">Contains</option>
+                            <option value="equals">Equals</option>
+                            <option value="starts_with">Starts With</option>
+                            <option value="ends_with">Ends With</option>
+                            <option value="greater_than">Greater Than</option>
+                            <option value="less_than">Less Than</option>
+                            <option value="between">Between</option>
+                        </select>
+                        <input type="text" 
+                               class="filter-input" 
+                               id="adv_value_${column.name}" 
+                               placeholder="Value...">
+                        <div class="range-inputs" id="adv_range_${column.name}" style="display: none;">
+                            <input type="number" class="filter-input" placeholder="Min" id="adv_min_${column.name}">
+                            <input type="number" class="filter-input" placeholder="Max" id="adv_max_${column.name}">
+                        </div>
+                    </div>
+                `;
+                
+                advancedFilters.appendChild(filterDiv);
+
+                // Add event listener for operator change
+                document.getElementById(`adv_operator_${column.name}`).addEventListener('change', function() {
+                    const rangeDiv = document.getElementById(`adv_range_${column.name}`);
+                    rangeDiv.style.display = this.value === 'between' ? 'grid' : 'none';
+                });
+            });
+        }
+
+        function getQuickFilters() {
+            const filters = {};
+            
+            tableSchema.columns.forEach(column => {
+                const input = document.getElementById(`quick_${column.name}`);
+                if (input && input.value.trim() !== '') {
+                    filters[column.name] = input.value.trim();
+                }
+            });
+            
+            return filters;
+        }
+
+        function getAdvancedFilters() {
+            const filters = {};
+            
+            tableSchema.columns.forEach(column => {
+                const operator = document.getElementById(`adv_operator_${column.name}`).value;
+                const value = document.getElementById(`adv_value_${column.name}`).value.trim();
+                const minValue = document.getElementById(`adv_min_${column.name}`)?.value.trim();
+                const maxValue = document.getElementById(`adv_max_${column.name}`)?.value.trim();
+                
+                if (value !== '' || (operator === 'between' && (minValue !== '' || maxValue !== ''))) {
+                    filters[column.name] = {
+                        operator: operator,
+                        value: value
+                    };
+                    
+                    if (operator === 'between') {
+                        filters[column.name].min_value = minValue;
+                        filters[column.name].max_value = maxValue;
+                    }
+                }
+            });
+            
+            return filters;
+        }
+
+        async function applyFilters() {
+            if (!currentTable) return;
+            
+            const filters = getQuickFilters();
+            await loadTableData(currentTable, filters);
+        }
+
+        async function applyAdvancedFilters() {
+            if (!currentTable) return;
+            
+            const filters = getAdvancedFilters();
+            
+            try {
+                showLoading();
+                const response = await fetch('/api/advanced-filter', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        table_name: currentTable,
+                        filters: filters
+                    })
+                });
+
+                const result = await response.json();
+                hideLoading();
+
+                if (result.success) {
+                    allTableData = result.data;
+                    displayResults(result);
+                } else {
+                    showError(result.error);
+                }
+            } catch (error) {
+                hideLoading();
+                showError('Network error: ' + error.message);
+            }
+        }
+
+        function clearFilters() {
+            // Clear quick filters
+            tableSchema.columns.forEach(column => {
+                const input = document.getElementById(`quick_${column.name}`);
+                if (input) input.value = '';
+            });
+            
+            // Clear advanced filters
+            tableSchema.columns.forEach(column => {
+                document.getElementById(`adv_operator_${column.name}`).value = 'contains';
+                document.getElementById(`adv_value_${column.name}`).value = '';
+                const minInput = document.getElementById(`adv_min_${column.name}`);
+                const maxInput = document.getElementById(`adv_max_${column.name}`);
+                if (minInput) minInput.value = '';
+                if (maxInput) maxInput.value = '';
+                document.getElementById(`adv_range_${column.name}`).style.display = 'none';
+            });
+            
+            // Reload all data
+            loadAllData();
+        }
+
+        function displayResults(result) {
+            const resultsTable = document.getElementById('resultsTable');
+            const resultCount = document.getElementById('resultCount');
+            
+            resultCount.textContent = `${result.row_count} records`;
+
+            if (result.data && result.data.length > 0) {
+                let tableHtml = '<thead><tr>';
+                result.columns.forEach(col => {
+                    tableHtml += `<th>${col}</th>`;
+                });
+                tableHtml += '</tr></thead><tbody>';
+
+                result.data.forEach(row => {
+                    tableHtml += '<tr>';
+                    result.columns.forEach(col => {
+                        let value = row[col];
+                        if (value === null || value === undefined) value = 'NULL';
+                        if (typeof value === 'object') value = JSON.stringify(value);
+                        tableHtml += `<td>${value}</td>`;
+                    });
+                    tableHtml += '</tr>';
+                });
+
+                tableHtml += '</tbody>';
+                resultsTable.innerHTML = tableHtml;
+                
+                document.getElementById('errorMessage').style.display = 'none';
+            } else {
+                resultsTable.innerHTML = '';
+                showError('No records found matching your filters.');
+            }
+        }
+
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${message}`;
+            errorDiv.style.display = 'block';
+        }
+
+        // Debounce function for better performance
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Initialize with first table selected
+        setTimeout(() => {
+            const firstTable = document.querySelector('.table-item');
+            if (firstTable) {
+                firstTable.click();
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

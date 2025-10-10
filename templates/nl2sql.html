@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniDB - Natural Language to SQL</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --accent: #e74c3c;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --info: #17a2b8;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --gradient-start: #667eea;
+            --gradient-end: #764ba2;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+            min-height: 100vh;
+            color: var(--dark);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            padding: 1rem 2rem;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 10px;
+            text-decoration: none;
+            color: var(--primary);
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            background: white;
+        }
+
+        .nav-btn.active {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .query-section, .results-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .section-title {
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .query-input-container {
+            margin-bottom: 1.5rem;
+        }
+
+        .query-input {
+            width: 100%;
+            min-height: 120px;
+            padding: 1rem;
+            border: 2px solid var(--light);
+            border-radius: 10px;
+            font-size: 1rem;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+
+        .query-input:focus {
+            outline: none;
+            border-color: var(--secondary);
+        }
+
+        .query-examples {
+            margin-top: 1rem;
+        }
+
+        .examples-title {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .example-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .example-chip {
+            background: var(--light);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .example-chip:hover {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .query-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: var(--light);
+            color: var(--dark);
+        }
+
+        .btn-secondary:hover {
+            background: #bdc3c7;
+        }
+
+        .results-container {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 1.5rem;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .results-table th {
+            background: var(--primary);
+            color: white;
+            padding: 0.75rem;
+            text-align: left;
+            position: sticky;
+            top: 0;
+        }
+
+        .results-table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--light);
+        }
+
+        .results-table tr:hover {
+            background: var(--light);
+        }
+
+        .sql-display {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 1rem;
+            overflow-x: auto;
+        }
+
+        .method-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-left: 0.5rem;
+        }
+
+        .method-rag { background: var(--success); color: white; }
+        .method-t5 { background: var(--info); color: white; }
+        .method-gemini { background: var(--warning); color: white; }
+
+        .confidence-meter {
+            height: 8px;
+            background: var(--light);
+            border-radius: 4px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .high-confidence { background: var(--success); }
+        .medium-confidence { background: var(--warning); }
+        .low-confidence { background: var(--accent); }
+
+        .visualization-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            margin-top: 2rem;
+        }
+
+        .viz-controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .viz-select {
+            padding: 0.5rem;
+            border: 1px solid var(--light);
+            border-radius: 5px;
+            background: white;
+        }
+
+        .viz-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .viz-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .viz-plot {
+            background: white;
+            border-radius: 10px;
+            padding: 1rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .spinner {
+            border: 4px solid var(--light);
+            border-top: 4px solid var(--secondary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .success-message {
+            background: #c6f6d5;
+            color: #276749;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-comment-dots"></i> Natural Language to SQL</h1>
+            <p>Ask questions in plain English and get insights from your database</p>
+        </div>
+
+        <div class="navigation">
+            <a href="/" class="nav-btn">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+            <a href="/nl2sql" class="nav-btn active">
+                <i class="fas fa-comment-dots"></i> Natural Language Query
+            </a>
+            <a href="/filter" class="nav-btn">
+                <i class="fas fa-filter"></i> Advanced Filter
+            </a>
+        </div>
+
+        <div class="main-content">
+            <div class="query-section">
+                <h2 class="section-title">
+                    <i class="fas fa-question-circle"></i> Ask Your Question
+                </h2>
+                
+                <div class="query-input-container">
+                    <textarea 
+                        id="queryInput" 
+                        class="query-input" 
+                        placeholder="Enter your question in natural language...&#10;Example: Show me all students in Computer Science department"
+                    ></textarea>
+                    
+                    <div class="query-examples">
+                        <div class="examples-title">Try these examples:</div>
+                        <div class="example-chips">
+                            <div class="example-chip" onclick="setExample(this)">Show faculty salaries by department</div>
+                            <div class="example-chip" onclick="setExample(this)">List students enrolled in 2023</div>
+                            <div class="example-chip" onclick="setExample(this)">Find courses with more than 4 credits</div>
+                            <div class="example-chip" onclick="setExample(this)">Average marks by subject</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="query-actions">
+                    <button class="btn btn-primary" onclick="executeQuery()">
+                        <i class="fas fa-play"></i> Execute Query
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearQuery()">
+                        <i class="fas fa-eraser"></i> Clear
+                    </button>
+                </div>
+            </div>
+
+            <div class="results-section">
+                <h2 class="section-title">
+                    <i class="fas fa-chart-bar"></i> Query Results
+                </h2>
+                
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Processing your query with AI...</p>
+                </div>
+
+                <div id="resultsArea">
+                    <div class="sql-display" id="sqlDisplay" style="display: none;">
+                        <strong>Generated SQL:</strong>
+                        <pre id="generatedSql"></pre>
+                        <div id="methodInfo"></div>
+                    </div>
+
+                    <div id="resultsTableContainer" style="display: none;">
+                        <div class="results-container">
+                            <table class="results-table" id="resultsTable">
+                                <!-- Results will be populated here -->
+                            </table>
+                        </div>
+                        <div id="rowCount"></div>
+                    </div>
+
+                    <div id="errorMessage" class="error-message" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="visualization-section" id="visualizationSection" style="display: none;">
+            <h2 class="section-title">
+                <i class="fas fa-chart-line"></i> Data Visualization
+            </h2>
+            
+            <div class="viz-controls">
+                <select id="vizType" class="viz-select" onchange="updateVisualization()">
+                    <option value="bar">Bar Chart</option>
+                    <option value="line">Line Chart</option>
+                    <option value="scatter">Scatter Plot</option>
+                    <option value="pie">Pie Chart</option>
+                    <option value="histogram">Histogram</option>
+                </select>
+                
+                <select id="xColumn" class="viz-select" onchange="updateVisualization()">
+                    <!-- Options will be populated dynamically -->
+                </select>
+                
+                <select id="yColumn" class="viz-select" onchange="updateVisualization()">
+                    <!-- Options will be populated dynamically -->
+                </select>
+                
+                <button class="btn btn-primary" onclick="generateMatplotlibPlot()">
+                    <i class="fas fa-download"></i> Export as Image
+                </button>
+            </div>
+
+            <div class="viz-container">
+                <div class="viz-plot">
+                    <div id="plotlyChart"></div>
+                </div>
+                <div class="viz-plot">
+                    <img id="matplotlibPlot" style="width: 100%; height: 400px; object-fit: contain;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentData = null;
+        let currentColumns = [];
+
+        function setExample(element) {
+            document.getElementById('queryInput').value = element.textContent;
+        }
+
+        function clearQuery() {
+            document.getElementById('queryInput').value = '';
+            hideResults();
+        }
+
+        function hideResults() {
+            document.getElementById('sqlDisplay').style.display = 'none';
+            document.getElementById('resultsTableContainer').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('visualizationSection').style.display = 'none';
+        }
+
+        async function executeQuery() {
+            const query = document.getElementById('queryInput').value.trim();
+            if (!query) {
+                alert('Please enter a question');
+                return;
+            }
+
+            const loading = document.getElementById('loading');
+            const resultsArea = document.getElementById('resultsArea');
+            
+            loading.style.display = 'block';
+            hideResults();
+
+            try {
+                const response = await fetch('/rag-query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query: query })
+                });
+
+                const result = await response.json();
+
+                loading.style.display = 'none';
+
+                if (result.success) {
+                    displayResults(result);
+                    currentData = result.data;
+                    currentColumns = result.columns;
+                    
+                    if (result.data && result.data.length > 0) {
+                        showVisualizationSection(result.data, result.columns);
+                    }
+                } else {
+                    showError(result.error);
+                }
+            } catch (error) {
+                loading.style.display = 'none';
+                showError('Network error: ' + error.message);
+            }
+        }
+
+        function displayResults(result) {
+            const sqlDisplay = document.getElementById('sqlDisplay');
+            const generatedSql = document.getElementById('generatedSql');
+            const methodInfo = document.getElementById('methodInfo');
+            const resultsTable = document.getElementById('resultsTable');
+            const resultsTableContainer = document.getElementById('resultsTableContainer');
+            const rowCount = document.getElementById('rowCount');
+
+            // Display SQL
+            generatedSql.textContent = result.generated_sql;
+            
+            // Display method information
+            let methodHtml = `<span>Method: <span class="method-badge method-${result.method_used}">${result.method_used.toUpperCase()}</span></span>`;
+            if (result.confidence) {
+                methodHtml += `<div>Confidence: ${(result.confidence * 100).toFixed(1)}%</div>`;
+                methodHtml += `<div class="confidence-meter">
+                    <div class="confidence-fill ${getConfidenceClass(result.confidence)}" 
+                         style="width: ${result.confidence * 100}%"></div>
+                </div>`;
+            }
+            if (result.fallback_used) {
+                methodHtml += '<div><i class="fas fa-info-circle"></i> Fallback method used</div>';
+            }
+            methodInfo.innerHTML = methodHtml;
+            
+            sqlDisplay.style.display = 'block';
+
+            // Display results table
+            if (result.data && result.data.length > 0) {
+                let tableHtml = '<thead><tr>';
+                result.columns.forEach(col => {
+                    tableHtml += `<th>${col}</th>`;
+                });
+                tableHtml += '</tr></thead><tbody>';
+
+                result.data.forEach(row => {
+                    tableHtml += '<tr>';
+                    result.columns.forEach(col => {
+                        let value = row[col];
+                        if (value === null || value === undefined) value = 'NULL';
+                        if (typeof value === 'object') value = JSON.stringify(value);
+                        tableHtml += `<td>${value}</td>`;
+                    });
+                    tableHtml += '</tr>';
+                });
+
+                tableHtml += '</tbody>';
+                resultsTable.innerHTML = tableHtml;
+                resultsTableContainer.style.display = 'block';
+                
+                rowCount.innerHTML = `<div class="success-message">
+                    <i class="fas fa-check-circle"></i> 
+                    Found ${result.row_count} records
+                </div>`;
+            } else {
+                resultsTableContainer.style.display = 'block';
+                rowCount.innerHTML = `<div class="success-message">
+                    <i class="fas fa-info-circle"></i> 
+                    Query executed successfully but no records found
+                </div>`;
+            }
+        }
+
+        function getConfidenceClass(confidence) {
+            if (confidence >= 0.8) return 'high-confidence';
+            if (confidence >= 0.6) return 'medium-confidence';
+            return 'low-confidence';
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${message}`;
+            errorDiv.style.display = 'block';
+        }
+
+        function showVisualizationSection(data, columns) {
+            const section = document.getElementById('visualizationSection');
+            section.style.display = 'block';
+
+            // Populate column selectors
+            const xColumn = document.getElementById('xColumn');
+            const yColumn = document.getElementById('yColumn');
+            
+            xColumn.innerHTML = '';
+            yColumn.innerHTML = '';
+            
+            columns.forEach(col => {
+                xColumn.innerHTML += `<option value="${col}">${col}</option>`;
+                yColumn.innerHTML += `<option value="${col}">${col}</option>`;
+            });
+
+            // Get visualization recommendation
+            getVisualizationRecommendation(data, columns);
+        }
+
+        async function getVisualizationRecommendation(data, columns) {
+            try {
+                const response = await fetch('/api/recommend-visualization', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ data: data, columns: columns })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    const recommendation = result.recommendation;
+                    document.getElementById('vizType').value = recommendation.plot_type;
+                    document.getElementById('xColumn').value = recommendation.x_col;
+                    document.getElementById('yColumn').value = recommendation.y_col;
+                    updateVisualization();
+                }
+            } catch (error) {
+                console.error('Error getting visualization recommendation:', error);
+                updateVisualization();
+            }
+        }
+
+        function updateVisualization() {
+            if (!currentData || currentData.length === 0) return;
+
+            const vizType = document.getElementById('vizType').value;
+            const xColumn = document.getElementById('xColumn').value;
+            const yColumn = document.getElementById('yColumn').value;
+
+            createPlotlyChart(vizType, xColumn, yColumn);
+            generateMatplotlibPlot(vizType, xColumn, yColumn);
+        }
+
+        function createPlotlyChart(vizType, xColumn, yColumn) {
+            const trace = {
+                x: currentData.map(row => row[xColumn]),
+                y: currentData.map(row => row[yColumn]),
+                type: vizType === 'bar' ? 'bar' : 
+                      vizType === 'line' ? 'scatter' :
+                      vizType === 'scatter' ? 'scatter' :
+                      vizType === 'pie' ? 'pie' : 'histogram',
+                mode: vizType === 'line' ? 'lines+markers' : undefined,
+                name: yColumn
+            };
+
+            if (vizType === 'pie') {
+                trace.labels = currentData.map(row => row[xColumn]);
+                trace.values = currentData.map(row => row[yColumn]);
+                delete trace.x;
+                delete trace.y;
+            }
+
+            const layout = {
+                title: `${yColumn} by ${xColumn}`,
+                xaxis: { title: xColumn },
+                yaxis: { title: yColumn },
+                height: 400
+            };
+
+            Plotly.newPlot('plotlyChart', [trace], layout);
+        }
+
+        async function generateMatplotlibPlot(vizType = null, xColumn = null, yColumn = null) {
+            if (!vizType) {
+                vizType = document.getElementById('vizType').value;
+                xColumn = document.getElementById('xColumn').value;
+                yColumn = document.getElementById('yColumn').value;
+            }
+
+            try {
+                const response = await fetch('/api/visualize', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        type: 'matplotlib',
+                        data: currentData,
+                        options: {
+                            plot_type: vizType,
+                            x_col: xColumn,
+                            y_col: yColumn,
+                            title: `${yColumn} by ${xColumn}`
+                        }
+                    })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    document.getElementById('matplotlibPlot').src = result.plot_image;
+                }
+            } catch (error) {
+                console.error('Error generating matplotlib plot:', error);
+            }
+        }
+
+        // Initialize with some example
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('queryInput').value = 'Show faculty salaries by department';
+        });
+    </script>
+</body>
+</html>

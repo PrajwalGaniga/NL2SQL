@@ -1,0 +1,10 @@
+2025-10-10 08:59:24,302 | INFO     | university_rag       | Initializing University Database System...
+2025-10-10 08:59:24,306 | INFO     | university_rag       | Database schema initialized successfully
+2025-10-10 08:59:24,306 | INFO     | university_rag       | Loading T5 model for SQL generation...
+2025-10-10 08:59:26,625 | INFO     | university_rag       | T5 model loaded successfully
+2025-10-10 08:59:26,626 | WARNING  | university_rag       | Gemini API key not configured. Gemini fallback will be disabled.
+2025-10-10 08:59:26,626 | INFO     | university_rag       | Loading existing FAISS index and RAG data...
+2025-10-10 08:59:26,631 | INFO     | sentence_transformers.SentenceTransformer | Use pytorch device_name: cpu
+2025-10-10 08:59:26,631 | INFO     | sentence_transformers.SentenceTransformer | Load pretrained SentenceTransformer: all-MiniLM-L6-v2
+2025-10-10 08:59:29,704 | INFO     | university_rag       | RAG system initialized from existing files
+2025-10-10 08:59:29,704 | INFO     | university_rag       | University Database System started successfully
