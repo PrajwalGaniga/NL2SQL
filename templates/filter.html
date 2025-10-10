@@ -17,6 +17,33 @@
             --dark: #2c3e50;
             --gradient-start: #667eea;
             --gradient-end: #764ba2;
+            --bg-color: #f8f9fa;
+            --text-color: #2c3e50;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --header-bg: transparent;
+            --border: rgba(255, 255, 255, 0.2);
+            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            --glass-blur: blur(10px);
+        }
+
+        .dark-mode {
+            --primary: #3498db;
+            --secondary: #2980b9;
+            --accent: #e74c3c;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --info: #17a2b8;
+            --light: #1a1a1a;
+            --dark: #f8f9fa;
+            --gradient-start: #2c3e50;
+            --gradient-end: #3498db;
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --card-bg: rgba(30, 30, 30, 0.85);
+            --header-bg: transparent;
+            --border: rgba(255, 255, 255, 0.1);
+            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            --glass-blur: blur(15px);
         }
 
         * {
@@ -29,7 +56,8 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
             min-height: 100vh;
-            color: var(--dark);
+            color: var(--text-color);
+            transition: all 0.3s ease;
         }
 
         .container {
@@ -42,6 +70,7 @@
             text-align: center;
             margin-bottom: 2rem;
             color: white;
+            position: relative;
         }
 
         .header h1 {
@@ -55,6 +84,27 @@
             opacity: 0.9;
         }
 
+        .theme-toggle {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            color: white;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            backdrop-filter: var(--glass-blur);
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
         .navigation {
             display: flex;
             justify-content: center;
@@ -65,33 +115,35 @@
 
         .nav-btn {
             padding: 1rem 2rem;
-            background: rgba(255, 255, 255, 0.9);
-            border: none;
-            border-radius: 10px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 15px;
             text-decoration: none;
-            color: var(--primary);
+            color: var(--text-color);
             font-weight: 600;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            box-shadow: var(--glass-shadow);
+            backdrop-filter: var(--glass-blur);
         }
 
         .nav-btn:hover {
             transform: translateY(-3px);
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-            background: white;
+            background: var(--card-bg);
         }
 
         .nav-btn.active {
             background: var(--secondary);
             color: white;
+            border-color: var(--secondary);
         }
 
         .main-content {
             display: grid;
-            grid-template-columns: 300px 1fr;
+            grid-template-columns: 1fr 2fr;
             gap: 2rem;
         }
 
@@ -99,23 +151,32 @@
             .main-content {
                 grid-template-columns: 1fr;
             }
+            
+            .theme-toggle {
+                position: relative;
+                margin: 1rem auto;
+            }
         }
 
         .sidebar {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
+            background: var(--card-bg);
+            border-radius: 20px;
             padding: 2rem;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(10px);
+            box-shadow: var(--glass-shadow);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
             height: fit-content;
         }
 
         .content {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
+            background: var(--card-bg);
+            border-radius: 20px;
             padding: 2rem;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(10px);
+            box-shadow: var(--glass-shadow);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
         }
 
         .section-title {
@@ -124,6 +185,7 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            font-size: 1.4rem;
         }
 
         .table-list {
@@ -133,15 +195,17 @@
         .table-item {
             padding: 1rem;
             margin-bottom: 0.5rem;
-            background: var(--light);
-            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
             cursor: pointer;
             transition: all 0.3s ease;
             border-left: 4px solid transparent;
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border);
         }
 
         .table-item:hover {
-            background: #d5dbdb;
+            background: rgba(255, 255, 255, 0.2);
             transform: translateX(5px);
         }
 
@@ -156,16 +220,18 @@
         }
 
         .filter-group {
-            background: white;
-            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
             padding: 1.5rem;
             margin-bottom: 1rem;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--glass-shadow);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border);
         }
 
         .filter-header {
             display: flex;
-            justify-content: between;
+            justify-content: space-between;
             align-items: center;
             margin-bottom: 1rem;
         }
@@ -173,6 +239,7 @@
         .filter-title {
             font-weight: bold;
             color: var(--primary);
+            font-size: 1.1rem;
         }
 
         .filter-controls {
@@ -190,23 +257,39 @@
 
         .filter-input {
             padding: 0.75rem;
-            border: 2px solid var(--light);
-            border-radius: 8px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
             font-size: 1rem;
             transition: border-color 0.3s ease;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            backdrop-filter: var(--glass-blur);
         }
 
         .filter-input:focus {
             outline: none;
             border-color: var(--secondary);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .filter-input::placeholder {
+            color: var(--text-color);
+            opacity: 0.7;
         }
 
         .filter-select {
             padding: 0.75rem;
-            border: 2px solid var(--light);
-            border-radius: 8px;
-            background: white;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
             font-size: 1rem;
+            color: var(--text-color);
+            backdrop-filter: var(--glass-blur);
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--secondary);
         }
 
         .range-inputs {
@@ -219,59 +302,70 @@
             display: flex;
             gap: 1rem;
             margin-top: 1rem;
+            flex-wrap: wrap;
         }
 
         .btn {
             padding: 0.75rem 1.5rem;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            backdrop-filter: var(--glass-blur);
         }
 
         .btn-primary {
             background: var(--secondary);
             color: white;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
         }
 
         .btn-primary:hover {
             background: #2980b9;
             transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
         }
 
         .btn-secondary {
-            background: var(--light);
-            color: var(--dark);
+            background: rgba(255, 255, 255, 0.2);
+            color: var(--text-color);
+            border: 1px solid var(--border);
         }
 
         .btn-secondary:hover {
-            background: #bdc3c7;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
         }
 
         .btn-success {
             background: var(--success);
             color: white;
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
         }
 
         .btn-success:hover {
             background: #229954;
+            transform: translateY(-2px);
         }
 
         .results-container {
             max-height: 600px;
             overflow-y: auto;
             margin-bottom: 1.5rem;
+            border-radius: 15px;
+            border: 1px solid var(--border);
+            backdrop-filter: var(--glass-blur);
         }
 
         .results-table {
             width: 100%;
             border-collapse: collapse;
-            background: white;
-            border-radius: 8px;
+            background: var(--card-bg);
+            border-radius: 15px;
             overflow: hidden;
         }
 
@@ -282,15 +376,17 @@
             text-align: left;
             position: sticky;
             top: 0;
+            font-weight: 600;
         }
 
         .results-table td {
             padding: 1rem;
-            border-bottom: 1px solid var(--light);
+            border-bottom: 1px solid var(--border);
+            color: var(--text-color);
         }
 
         .results-table tr:hover {
-            background: var(--light);
+            background: rgba(255, 255, 255, 0.1);
         }
 
         .loading {
@@ -300,7 +396,7 @@
         }
 
         .spinner {
-            border: 4px solid var(--light);
+            border: 4px solid rgba(255, 255, 255, 0.3);
             border-top: 4px solid var(--secondary);
             border-radius: 50%;
             width: 40px;
@@ -315,19 +411,31 @@
         }
 
         .error-message {
-            background: #fed7d7;
+            background: rgba(254, 215, 215, 0.8);
             color: #c53030;
             padding: 1rem;
-            border-radius: 8px;
+            border-radius: 12px;
             margin-bottom: 1rem;
+            border: 1px solid rgba(197, 48, 48, 0.3);
+            backdrop-filter: var(--glass-blur);
         }
 
         .success-message {
-            background: #c6f6d5;
+            background: rgba(198, 246, 213, 0.8);
             color: #276749;
             padding: 1rem;
-            border-radius: 8px;
+            border-radius: 12px;
             margin-bottom: 1rem;
+            border: 1px solid rgba(39, 103, 73, 0.3);
+            backdrop-filter: var(--glass-blur);
+        }
+
+        .dark-mode .error-message {
+            background: rgba(254, 215, 215, 0.2);
+        }
+
+        .dark-mode .success-message {
+            background: rgba(198, 246, 213, 0.2);
         }
 
         .filter-count {
@@ -347,15 +455,91 @@
         }
 
         .column-filter {
-            background: var(--light);
+            background: rgba(255, 255, 255, 0.1);
             padding: 1rem;
-            border-radius: 8px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            backdrop-filter: var(--glass-blur);
         }
 
         .column-name {
             font-weight: bold;
             color: var(--primary);
             margin-bottom: 0.5rem;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--secondary);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2980b9;
+        }
+
+        /* Mobile responsive improvements */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .header p {
+                font-size: 1rem;
+            }
+            
+            .nav-btn {
+                padding: 0.8rem 1.5rem;
+                font-size: 0.9rem;
+            }
+            
+            .sidebar, .content {
+                padding: 1.5rem;
+            }
+            
+            .filter-actions {
+                justify-content: center;
+            }
+            
+            .btn {
+                padding: 0.6rem 1.2rem;
+                font-size: 0.9rem;
+            }
+            
+            .column-filters {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .section-title {
+                font-size: 1.2rem;
+            }
+            
+            .filter-controls {
+                gap: 0.5rem;
+            }
+            
+            .filter-input, .filter-select {
+                padding: 0.6rem;
+            }
         }
     </style>
 </head>
@@ -364,6 +548,9 @@
         <div class="header">
             <h1><i class="fas fa-filter"></i> Advanced Data Filter</h1>
             <p>Filter and explore your data with advanced filtering options</p>
+            <button id="themeToggle" class="theme-toggle">
+                <i class="fas fa-moon"></i>
+            </button>
         </div>
 
         <div class="navigation">
@@ -379,6 +566,7 @@
         </div>
 
         <div class="main-content">
+            <!-- Left Side: Database Tables and Filter Controls -->
             <div class="sidebar">
                 <h2 class="section-title">
                     <i class="fas fa-table"></i> Database Tables
@@ -386,15 +574,6 @@
                 <ul class="table-list" id="tableList">
                     <!-- Tables will be populated dynamically -->
                 </ul>
-            </div>
-
-            <div class="content">
-                <div id="tableInfo">
-                    <h2 class="section-title">
-                        <i class="fas fa-info-circle"></i> Select a table to start filtering
-                    </h2>
-                    <p>Choose a table from the sidebar to view its data and apply filters.</p>
-                </div>
 
                 <div id="filterInterface" style="display: none;">
                     <h2 class="section-title" id="currentTableTitle">
@@ -419,9 +598,6 @@
                                 <button class="btn btn-secondary" onclick="clearFilters()">
                                     <i class="fas fa-eraser"></i> Clear All
                                 </button>
-                                <button class="btn btn-success" onclick="loadAllData()">
-                                    <i class="fas fa-sync"></i> Load All Data
-                                </button>
                             </div>
                         </div>
 
@@ -436,33 +612,46 @@
 
                             <div class="filter-actions">
                                 <button class="btn btn-primary" onclick="applyAdvancedFilters()">
-                                    <i class="fas fa-cog"></i> Apply Advanced Filters
+                                    <i class="fas fa-cog"></i> Apply Advanced
+                                </button>
+                                <button class="btn btn-success" onclick="loadAllData()">
+                                    <i class="fas fa-sync"></i> Load All
                                 </button>
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
 
-                    <div class="results-section">
-                        <h2 class="section-title">
-                            <i class="fas fa-chart-bar"></i> Filtered Results
-                            <span class="filter-count" id="resultCount">0 records</span>
-                        </h2>
-                        
-                        <div class="loading" id="loading">
-                            <div class="spinner"></div>
-                            <p>Loading data...</p>
-                        </div>
+            <!-- Right Side: Filtered Results -->
+            <div class="content">
+                <div id="tableInfo">
+                    <h2 class="section-title">
+                        <i class="fas fa-info-circle"></i> Select a table to start filtering
+                    </h2>
+                    <p>Choose a table from the sidebar to view its data and apply filters.</p>
+                </div>
 
-                        <div id="resultsArea">
-                            <div class="results-container">
-                                <table class="results-table" id="resultsTable">
-                                    <!-- Results will be populated here -->
-                                </table>
-                            </div>
-                        </div>
-
-                        <div id="errorMessage" class="error-message" style="display: none;"></div>
+                <div id="resultsSection" style="display: none;">
+                    <h2 class="section-title">
+                        <i class="fas fa-chart-bar"></i> Filtered Results
+                        <span class="filter-count" id="resultCount">0 records</span>
+                    </h2>
+                    
+                    <div class="loading" id="loading">
+                        <div class="spinner"></div>
+                        <p>Loading data...</p>
                     </div>
+
+                    <div id="resultsArea">
+                        <div class="results-container">
+                            <table class="results-table" id="resultsTable">
+                                <!-- Results will be populated here -->
+                            </table>
+                        </div>
+                    </div>
+
+                    <div id="errorMessage" class="error-message" style="display: none;"></div>
                 </div>
             </div>
         </div>
@@ -472,6 +661,31 @@
         let currentTable = null;
         let tableSchema = null;
         let allTableData = null;
+
+        // Theme toggle functionality
+        document.getElementById('themeToggle').addEventListener('click', function() {
+            document.body.classList.toggle('dark-mode');
+            
+            // Update icon
+            const icon = this.querySelector('i');
+            if (document.body.classList.contains('dark-mode')) {
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+                localStorage.setItem('theme', 'light');
+            }
+        });
+
+        // Check for saved theme preference
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-mode');
+            document.getElementById('themeToggle').querySelector('i').classList.remove('fa-moon');
+            document.getElementById('themeToggle').querySelector('i').classList.add('fa-sun');
+        }
 
         // Load tables on page load
         document.addEventListener('DOMContentLoaded', function() {
@@ -511,6 +725,7 @@
             currentTable = tableName;
             document.getElementById('tableInfo').style.display = 'none';
             document.getElementById('filterInterface').style.display = 'block';
+            document.getElementById('resultsSection').style.display = 'block';
             document.getElementById('tableNameDisplay').textContent = tableName;
 
             // Load table schema and data
