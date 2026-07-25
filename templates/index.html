@@ -1,1167 +1,248 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Professional University Database Management System</title>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <title>NL to SQL | Database Query Engine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6366f1',
+                        secondary: '#a855f7',
+                        surface: '#1e293b',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary: #2c3e50;
-            --secondary: #3498db;
-            --accent: #e74c3c;
-            --success: #27ae60;
-            --warning: #f39c12;
-            --info: #17a2b8;
-            --light: #ecf0f1;
-            --dark: #2c3e50;
-            --sidebar-width: 280px;
-            --header-height: 70px;
+        body { font-family: 'Inter', sans-serif; }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        .gradient-text {
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: var(--dark);
-        }
-
-        .dashboard-container {
-            display: grid;
-            grid-template-columns: var(--sidebar-width) 1fr;
-            grid-template-rows: var(--header-height) 1fr;
-            grid-template-areas: 
-                "sidebar header"
-                "sidebar main";
-            min-height: 100vh;
-        }
-
-        /* Header */
-        .header {
-            grid-area: header;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 0 2rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .header h1 {
-            color: var(--primary);
-            font-size: 1.5rem;
-            font-weight: 600;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: var(--secondary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            grid-area: sidebar;
-            background: rgba(44, 62, 80, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 2rem 0;
-            overflow-y: auto;
-        }
-
-        .logo {
-            text-align: center;
-            color: white;
-            margin-bottom: 2rem;
-            padding: 0 1rem;
-        }
-
-        .logo h2 {
-            font-size: 1.3rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .logo p {
-            font-size: 0.9rem;
-            opacity: 0.7;
-        }
-
-        .nav-menu {
-            list-style: none;
-        }
-
-        .nav-item {
-            margin-bottom: 0.5rem;
-        }
-
-        .nav-link {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 1rem 2rem;
-            color: rgba(255, 255, 255, 0.8);
-            text-decoration: none;
-            transition: all 0.3s ease;
-            border-left: 4px solid transparent;
-        }
-
-        .nav-link:hover, .nav-link.active {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            border-left-color: var(--secondary);
-        }
-
-        .nav-link i {
-            width: 20px;
-            text-align: center;
-        }
-
-        /* Main Content */
-        .main-content {
-            grid-area: main;
-            padding: 2rem;
-            overflow-y: auto;
-        }
-
-        .content-section {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
-
-        .section-header h2 {
-            color: var(--primary);
-            font-size: 1.5rem;
-        }
-
-        /* Cards */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: linear-gradient(135deg, var(--secondary), #2980b9);
-            color: white;
-            padding: 1.5rem;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .stat-card.warning {
-            background: linear-gradient(135deg, var(--warning), #e67e22);
-        }
-
-        .stat-card.success {
-            background: linear-gradient(135deg, var(--success), #229954);
-        }
-
-        .stat-card.accent {
-            background: linear-gradient(135deg, var(--accent), #c0392b);
-        }
-
-        .stat-card h3 {
-            font-size: 0.9rem;
-            opacity: 0.9;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-card .value {
-            font-size: 2rem;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-card .trend {
-            font-size: 0.8rem;
-            opacity: 0.8;
-        }
-
-        /* Forms and Inputs */
-        .input-group {
-            margin-bottom: 1rem;
-        }
-
-        .input-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-            color: var(--dark);
-        }
-
-        .input-group input,
-        .input-group select,
-        .input-group textarea {
-            width: 100%;
-            padding: 0.75rem;
-            border: 2px solid #e1e8ed;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        .input-group input:focus,
-        .input-group select:focus,
-        .input-group textarea:focus {
-            outline: none;
-            border-color: var(--secondary);
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-        }
-
-        .btn {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .btn-primary {
-            background: var(--secondary);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #2980b9;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
-        }
-
-        .btn-success {
-            background: var(--success);
-            color: white;
-        }
-
-        .btn-warning {
-            background: var(--warning);
-            color: white;
-        }
-
-        .btn-accent {
-            background: var(--accent);
-            color: white;
-        }
-
-        /* Tables */
-        .table-container {
-            overflow-x: auto;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-        }
-
-        .data-table th,
-        .data-table td {
-            padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid #e1e8ed;
-        }
-
-        .data-table th {
-            background: var(--primary);
-            color: white;
-            font-weight: 600;
-        }
-
-        .data-table tr:hover {
-            background: #f8f9fa;
-        }
-
-        /* Visualization */
-        .viz-container {
-            background: white;
-            border-radius: 10px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .viz-controls {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .viz-controls select {
-            flex: 1;
-            min-width: 150px;
-        }
-
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(5px);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 15px;
-            padding: 2rem;
-            max-width: 90%;
-            max-height: 90%;
-            overflow: auto;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        .close-modal {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: var(--dark);
-        }
-
-        /* Tabs */
-        .tabs {
-            display: flex;
-            border-bottom: 2px solid #e1e8ed;
-            margin-bottom: 1rem;
-        }
-
-        .tab {
-            padding: 1rem 2rem;
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s ease;
-        }
-
-        .tab.active {
-            border-bottom-color: var(--secondary);
-            color: var(--secondary);
-            font-weight: 600;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        /* Loading */
-        .loading {
-            text-align: center;
-            padding: 2rem;
-        }
-
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid var(--secondary);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 1rem;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .dashboard-container {
-                grid-template-columns: 1fr;
-                grid-template-areas: 
-                    "header"
-                    "main";
-            }
-
-            .sidebar {
-                display: none;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
     </style>
 </head>
-<body>
-    <div class="dashboard-container">
-        <!-- Header -->
-        <header class="header">
-            <h1>University Database Management System</h1>
-            <div class="user-info">
-                <div class="user-avatar">AD</div>
-                <span>Admin User</span>
-            </div>
+<body class="bg-slate-900 text-slate-200 min-h-screen selection:bg-primary selection:text-white">
+
+    <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div class="absolute -top-[30%] -left-[10%] w-[70%] h-[70%] rounded-full bg-primary/10 blur-[120px]"></div>
+        <div class="absolute top-[20%] -right-[20%] w-[60%] h-[60%] rounded-full bg-secondary/10 blur-[120px]"></div>
+    </div>
+
+    <main class="relative z-10 container mx-auto px-4 py-12 max-w-6xl">
+        <header class="text-center mb-12">
+            <h1 class="text-5xl font-bold mb-4 tracking-tight">NL to <span class="gradient-text">SQL</span></h1>
+            <p class="text-slate-400 text-lg max-w-2xl mx-auto">Ask questions in natural language and the Gemini AI will convert them to precise PostgreSQL queries executed against the student database.</p>
         </header>
 
-        <!-- Sidebar -->
-        <nav class="sidebar">
-            <div class="logo">
-                <h2><i class="fas fa-database"></i> UniDB</h2>
-                <p>Professional Database Management</p>
-            </div>
-            <ul class="nav-menu">
-                <li class="nav-item">
-                    <a href="#" class="nav-link active" data-tab="dashboard">
-                        <i class="fas fa-tachometer-alt"></i>
-                        Dashboard
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link" data-tab="tables">
-                        <i class="fas fa-table"></i>
-                        Database Tables
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link" data-tab="query">
-                        <i class="fas fa-search"></i>
-                        Natural Language Query
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link" data-tab="visualization">
-                        <i class="fas fa-chart-bar"></i>
-                        Advanced Visualization
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link" data-tab="analytics">
-                        <i class="fas fa-chart-line"></i>
-                        Analytics
-                    </a>
-                </li>
-            </ul>
-        </nav>
-
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Dashboard Tab -->
-            <div id="dashboard" class="tab-content active">
-                <div class="content-section">
-                    <div class="section-header">
-                        <h2>System Overview</h2>
+        <section class="glass-panel rounded-2xl p-6 md:p-8 mb-8 shadow-2xl">
+            <form id="queryForm" class="flex flex-col md:flex-row gap-4">
+                <div class="relative flex-1">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     </div>
-                    
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <h3>Total Students</h3>
-                            <div class="value" id="total-students">0</div>
-                            <div class="trend">Across all departments</div>
-                        </div>
-                        <div class="stat-card warning">
-                            <h3>Active Faculty</h3>
-                            <div class="value" id="total-faculty">0</div>
-                            <div class="trend">Teaching staff</div>
-                        </div>
-                        <div class="stat-card success">
-                            <h3>Courses Offered</h3>
-                            <div class="value" id="total-courses">0</div>
-                            <div class="trend">Various programs</div>
-                        </div>
-                        <div class="stat-card accent">
-                            <h3>Departments</h3>
-                            <div class="value" id="total-departments">0</div>
-                            <div class="trend">Academic divisions</div>
-                        </div>
-                    </div>
-
-                    <div class="content-section">
-                        <h3>Quick Actions</h3>
-                        <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;">
-                            <button class="btn btn-primary" onclick="showTab('tables')">
-                                <i class="fas fa-table"></i> Browse Tables
-                            </button>
-                            <button class="btn btn-success" onclick="showTab('query')">
-                                <i class="fas fa-search"></i> Natural Language Query
-                            </button>
-                            <button class="btn btn-warning" onclick="showTab('visualization')">
-                                <i class="fas fa-chart-bar"></i> Create Visualization
-                            </button>
-                        </div>
-                    </div>
+                    <input type="text" id="queryInput" required placeholder="e.g. Show me all students with CGPA greater than 9.0" 
+                           class="w-full pl-12 pr-4 py-4 bg-slate-800/50 border border-slate-700 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-lg placeholder-slate-500 shadow-inner">
                 </div>
+                <button type="submit" id="submitBtn" class="px-8 py-4 bg-gradient-to-r from-primary to-secondary hover:from-indigo-500 hover:to-purple-500 text-white font-semibold rounded-xl transition-all shadow-lg shadow-primary/30 flex items-center justify-center gap-2 group">
+                    <span>Execute</span>
+                    <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+                </button>
+            </form>
+            
+            <div class="mt-4 flex flex-wrap gap-2 text-sm text-slate-400">
+                <span class="mr-2 text-slate-500">Try:</span>
+                <button class="suggestion-btn hover:text-primary transition-colors cursor-pointer bg-slate-800/50 px-3 py-1 rounded-full border border-slate-700">List all active courses</button>
+                <button class="suggestion-btn hover:text-primary transition-colors cursor-pointer bg-slate-800/50 px-3 py-1 rounded-full border border-slate-700">How many female students are there?</button>
+                <button class="suggestion-btn hover:text-primary transition-colors cursor-pointer bg-slate-800/50 px-3 py-1 rounded-full border border-slate-700">Show students in Bangalore</button>
             </div>
+        </section>
 
-            <!-- Database Tables Tab -->
-            <div id="tables" class="tab-content">
-                <div class="content-section">
-                    <div class="section-header">
-                        <h2>Database Tables</h2>
-                        <div class="viz-controls">
-                            <select id="table-select">
-                                <option value="">Select a table...</option>
-                            </select>
-                            <button class="btn btn-primary" onclick="loadTableData()">
-                                <i class="fas fa-sync"></i> Load Data
-                            </button>
-                        </div>
-                    </div>
+        <!-- Loading State -->
+        <div id="loadingIndicator" class="hidden flex-col items-center justify-center py-12">
+            <div class="w-12 h-12 border-4 border-slate-700 border-t-primary rounded-full animate-spin mb-4"></div>
+            <p class="text-slate-400 animate-pulse">Gemini is translating and executing...</p>
+        </div>
 
-                    <div id="table-filters" style="display: none;">
-                        <h4>Filters</h4>
-                        <div id="filter-inputs" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
-                            <!-- Filter inputs will be dynamically added here -->
-                        </div>
-                        <button class="btn btn-success" onclick="applyFilters()">
-                            <i class="fas fa-filter"></i> Apply Filters
-                        </button>
-                    </div>
-
-                    <div id="table-data" class="table-container">
-                        <!-- Table data will be loaded here -->
-                    </div>
+        <!-- Error State -->
+        <div id="errorMessage" class="hidden glass-panel border-red-500/30 bg-red-500/10 rounded-2xl p-6 mb-8 text-red-200">
+            <div class="flex items-start gap-3">
+                <svg class="w-6 h-6 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <div>
+                    <h3 class="font-semibold text-red-300 text-lg mb-1">Execution Failed</h3>
+                    <p id="errorText" class="opacity-90"></p>
+                    <div id="errorSqlContainer" class="hidden mt-3 p-3 bg-slate-900 rounded-lg border border-red-500/20 text-red-300/80 font-mono text-sm overflow-x-auto"></div>
                 </div>
-            </div>
-
-            <!-- Natural Language Query Tab -->
-            <div id="query" class="tab-content">
-                <div class="content-section">
-                    <h2>Natural Language Query</h2>
-                    <div class="input-group">
-                        <label for="nl-query">Enter your question about the database:</label>
-                        <textarea id="nl-query" rows="3" placeholder="e.g., Show all students in Computer Science department with their grades..."></textarea>
-                    </div>
-                    <button class="btn btn-primary" onclick="processNLQuery()">
-                        <i class="fas fa-rocket"></i> Generate & Execute Query
-                    </button>
-
-                    <div id="query-results" style="margin-top: 2rem;">
-                        <!-- Results will be displayed here -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Advanced Visualization Tab -->
-            <div id="visualization" class="tab-content">
-                <div class="content-section">
-                    <h2>Advanced Data Visualization</h2>
-                    
-                    <div class="viz-controls">
-                        <select id="viz-table-select">
-                            <option value="">Select table...</option>
-                        </select>
-                        <select id="viz-type">
-                            <option value="3d_scatter">3D Scatter Plot</option>
-                            <option value="bar">Bar Chart</option>
-                            <option value="pie">3D Pie Chart</option>
-                            <option value="radar">Radar Chart</option>
-                            <option value="heatmap">Heatmap</option>
-                        </select>
-                        <button class="btn btn-primary" onclick="loadVizData()">
-                            <i class="fas fa-chart-bar"></i> Load Data for Visualization
-                        </button>
-                    </div>
-
-                    <div id="viz-options" style="display: none; margin-top: 1rem;">
-                        <h4>Visualization Options</h4>
-                        <div id="viz-inputs" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
-                            <!-- Visualization options will be dynamically added here -->
-                        </div>
-                        <button class="btn btn-success" onclick="generateVisualization()">
-                            <i class="fas fa-magic"></i> Generate Visualization
-                        </button>
-                    </div>
-
-                    <div id="viz-container" class="viz-container">
-                        <div id="plotly-chart"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Analytics Tab -->
-            <div id="analytics" class="tab-content">
-                <div class="content-section">
-                    <h2>Advanced Analytics</h2>
-                    <p>Comprehensive analytics and reporting features coming soon...</p>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <!-- Modal for Detailed View -->
-    <div id="detail-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Detailed View</h3>
-                <button class="close-modal" onclick="closeModal()">&times;</button>
-            </div>
-            <div id="modal-content">
-                <!-- Modal content will be loaded here -->
             </div>
         </div>
-    </div>
+
+        <!-- Results Container -->
+        <div id="resultsContainer" class="hidden opacity-0 transition-opacity duration-500 ease-in-out">
+            <!-- Generated SQL -->
+            <div class="glass-panel rounded-2xl p-6 mb-8 shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-semibold text-lg flex items-center gap-2">
+                        <svg class="w-5 h-5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                        Generated SQL
+                    </h3>
+                    <span class="text-xs font-mono bg-primary/20 text-primary px-2 py-1 rounded-md">gemini-2.5-flash</span>
+                </div>
+                <div class="bg-slate-900 rounded-xl p-4 border border-slate-700/50 overflow-x-auto">
+                    <code id="sqlCode" class="font-mono text-slate-300 whitespace-pre"></code>
+                </div>
+            </div>
+
+            <!-- Data Table -->
+            <div class="glass-panel rounded-2xl p-6 shadow-xl overflow-hidden">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="font-semibold text-lg flex items-center gap-2">
+                        <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+                        Query Results
+                    </h3>
+                    <span id="rowCount" class="bg-slate-800 text-slate-300 px-3 py-1 rounded-full text-sm font-medium border border-slate-700">0 rows</span>
+                </div>
+                
+                <div class="overflow-x-auto border border-slate-700/50 rounded-xl bg-slate-900/50">
+                    <table class="w-full text-sm text-left">
+                        <thead class="text-xs text-slate-400 uppercase bg-slate-800 border-b border-slate-700" id="tableHead">
+                            <!-- Table headers will be injected here -->
+                        </thead>
+                        <tbody id="tableBody" class="divide-y divide-slate-800">
+                            <!-- Table rows will be injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
 
     <script>
-        // Global variables
-        let currentTableData = null;
-        let currentTableColumns = null;
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('queryForm');
+            const input = document.getElementById('queryInput');
+            const submitBtn = document.getElementById('submitBtn');
+            const suggestions = document.querySelectorAll('.suggestion-btn');
+            
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const errorMessage = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+            const errorSqlContainer = document.getElementById('errorSqlContainer');
+            
+            const resultsContainer = document.getElementById('resultsContainer');
+            const sqlCode = document.getElementById('sqlCode');
+            const rowCount = document.getElementById('rowCount');
+            const tableHead = document.getElementById('tableHead');
+            const tableBody = document.getElementById('tableBody');
 
-        // Initialize dashboard
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeDashboard();
-            setupEventListeners();
-            loadTableList();
-        });
-
-        function setupEventListeners() {
-            // Tab navigation
-            document.querySelectorAll('.nav-link').forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const tab = this.getAttribute('data-tab');
-                    showTab(tab);
+            // Handle suggestion clicks
+            suggestions.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    input.value = e.target.textContent;
+                    form.dispatchEvent(new Event('submit'));
                 });
             });
 
-            // Table select change
-            document.getElementById('table-select').addEventListener('change', function() {
-                setupTableFilters(this.value);
-            });
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const query = input.value.trim();
+                if (!query) return;
 
-            // Visualization table select change
-            document.getElementById('viz-table-select').addEventListener('change', function() {
-                setupVizOptions(this.value);
-            });
-        }
-
-        function showTab(tabName) {
-            // Hide all tabs
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
-
-            // Remove active class from all nav links
-            document.querySelectorAll('.nav-link').forEach(link => {
-                link.classList.remove('active');
-            });
-
-            // Show selected tab
-            document.getElementById(tabName).classList.add('active');
-
-            // Activate corresponding nav link
-            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-
-            // Load data if needed
-            if (tabName === 'dashboard') {
-                loadDashboardStats();
-            }
-        }
-
-        async function initializeDashboard() {
-            await loadDashboardStats();
-            await loadTableList();
-        }
-
-        async function loadDashboardStats() {
-            try {
-                // These would be actual API calls in a real implementation
-                document.getElementById('total-students').textContent = '1,247';
-                document.getElementById('total-faculty').textContent = '89';
-                document.getElementById('total-courses').textContent = '45';
-                document.getElementById('total-departments').textContent = '12';
-            } catch (error) {
-                console.error('Error loading dashboard stats:', error);
-            }
-        }
-
-        async function loadTableList() {
-            try {
-                const response = await fetch('/api/tables');
-                const data = await response.json();
+                // UI states
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-70');
                 
-                const tableSelect = document.getElementById('table-select');
-                const vizTableSelect = document.getElementById('viz-table-select');
+                loadingIndicator.classList.remove('hidden');
+                loadingIndicator.classList.add('flex');
                 
-                tableSelect.innerHTML = '<option value="">Select a table...</option>';
-                vizTableSelect.innerHTML = '<option value="">Select a table...</option>';
-                
-                data.tables.forEach(table => {
-                    const option1 = document.createElement('option');
-                    option1.value = table;
-                    option1.textContent = table;
-                    tableSelect.appendChild(option1);
+                errorMessage.classList.add('hidden');
+                resultsContainer.classList.add('hidden');
+                resultsContainer.classList.remove('opacity-100');
+
+                try {
+                    const response = await fetch('/query', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ query })
+                    });
                     
-                    const option2 = document.createElement('option');
-                    option2.value = table;
-                    option2.textContent = table;
-                    vizTableSelect.appendChild(option2);
-                });
-            } catch (error) {
-                console.error('Error loading table list:', error);
-            }
-        }
-
-        async function loadTableData() {
-            const tableSelect = document.getElementById('table-select');
-            const tableName = tableSelect.value;
-            
-            if (!tableName) {
-                alert('Please select a table first.');
-                return;
-            }
-            
-            const tableDataDiv = document.getElementById('table-data');
-            tableDataDiv.innerHTML = '<div class="loading"><div class="spinner"></div>Loading table data...</div>';
-            
-            try {
-                const response = await fetch('/api/table-data', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ table_name: tableName, limit: 1000 })
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    currentTableData = result.data;
-                    currentTableColumns = result.columns;
+                    const data = await response.json();
                     
-                    displayTableData(result.columns, result.data);
-                } else {
-                    tableDataDiv.innerHTML = `<div class="error">Error: ${result.error}</div>`;
-                }
-            } catch (error) {
-                tableDataDiv.innerHTML = `<div class="error">Error loading table data: ${error.message}</div>`;
-            }
-        }
-
-        function displayTableData(columns, data) {
-            const tableDataDiv = document.getElementById('table-data');
-            
-            if (data.length === 0) {
-                tableDataDiv.innerHTML = '<p>No data found in this table.</p>';
-                return;
-            }
-            
-            let tableHTML = '<table class="data-table"><thead><tr>';
-            
-            columns.forEach(col => {
-                tableHTML += `<th>${col}</th>`;
-            });
-            
-            tableHTML += '</tr></thead><tbody>';
-            
-            data.forEach(row => {
-                tableHTML += '<tr>';
-                columns.forEach(col => {
-                    let value = row[col] !== null && row[col] !== undefined ? row[col] : 'NULL';
-                    // Truncate long values
-                    if (String(value).length > 100) {
-                        value = String(value).substring(0, 100) + '...';
-                    }
-                    tableHTML += `<td>${value}</td>`;
-                });
-                tableHTML += '</tr>';
-            });
-            
-            tableHTML += '</tbody></table>';
-            
-            tableDataDiv.innerHTML = tableHTML;
-        }
-
-        async function setupTableFilters(tableName) {
-            const filtersDiv = document.getElementById('table-filters');
-            const filterInputsDiv = document.getElementById('filter-inputs');
-            
-            if (!tableName) {
-                filtersDiv.style.display = 'none';
-                return;
-            }
-            
-            try {
-                const response = await fetch(`/api/table-schema/${tableName}`);
-                const schema = await response.json();
-                
-                filterInputsDiv.innerHTML = '';
-                
-                schema.columns.forEach(column => {
-                    const inputGroup = document.createElement('div');
-                    inputGroup.className = 'input-group';
-                    inputGroup.innerHTML = `
-                        <label for="filter-${column.name}">${column.name}</label>
-                        <input type="text" id="filter-${column.name}" placeholder="Filter ${column.name}...">
-                    `;
-                    filterInputsDiv.appendChild(inputGroup);
-                });
-                
-                filtersDiv.style.display = 'block';
-            } catch (error) {
-                console.error('Error setting up filters:', error);
-            }
-        }
-
-        async function applyFilters() {
-            const tableName = document.getElementById('table-select').value;
-            const filterInputs = document.querySelectorAll('#filter-inputs input');
-            const filters = {};
-            
-            filterInputs.forEach(input => {
-                const columnName = input.id.replace('filter-', '');
-                if (input.value.trim()) {
-                    filters[columnName] = input.value.trim();
-                }
-            });
-            
-            const tableDataDiv = document.getElementById('table-data');
-            tableDataDiv.innerHTML = '<div class="loading"><div class="spinner"></div>Loading filtered data...</div>';
-            
-            try {
-                const response = await fetch('/api/table-data', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        table_name: tableName, 
-                        filters: filters,
-                        limit: 1000 
-                    })
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    currentTableData = result.data;
-                    currentTableColumns = result.columns;
-                    displayTableData(result.columns, result.data);
-                } else {
-                    tableDataDiv.innerHTML = `<div class="error">Error: ${result.error}</div>`;
-                }
-            } catch (error) {
-                tableDataDiv.innerHTML = `<div class="error">Error applying filters: ${error.message}</div>`;
-            }
-        }
-
-        async function processNLQuery() {
-            const queryInput = document.getElementById('nl-query');
-            const query = queryInput.value.trim();
-            const resultsDiv = document.getElementById('query-results');
-            
-            if (!query) {
-                alert('Please enter a query.');
-                return;
-            }
-            
-            resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div>Processing your query with AI...</div>';
-            
-            try {
-                const response = await fetch('/rag-query', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ query: query })
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    let resultsHTML = `
-                        <div class="content-section">
-                            <h3>Query Results</h3>
-                            <div class="success">
-                                <strong>Query executed successfully!</strong><br>
-                                Method: ${result.method_used.toUpperCase()} | 
-                                Rows: ${result.row_count} |
-                                Confidence: ${(result.confidence * 100).toFixed(1)}%
-                            </div>
-                            <h4>Generated SQL:</h4>
-                            <pre style="background: #f8f9fa; padding: 1rem; border-radius: 5px; overflow-x: auto;">${result.generated_sql}</pre>
-                    `;
-                    
-                    if (result.data && result.data.length > 0) {
-                        resultsHTML += '<h4>Results:</h4>';
-                        resultsHTML += '<div class="table-container">';
-                        resultsHTML += '<table class="data-table"><thead><tr>';
+                    if (data.success) {
+                        // Render successful results
+                        sqlCode.textContent = data.sql_query;
+                        rowCount.textContent = `${data.row_count} row${data.row_count !== 1 ? 's' : ''}`;
                         
-                        result.columns.forEach(col => {
-                            resultsHTML += `<th>${col}</th>`;
+                        // Render headers
+                        let headHtml = '<tr>';
+                        data.columns.forEach(col => {
+                            headHtml += `<th scope="col" class="px-6 py-4 font-semibold tracking-wider">${col}</th>`;
                         });
+                        headHtml += '</tr>';
+                        tableHead.innerHTML = headHtml;
                         
-                        resultsHTML += '</tr></thead><tbody>';
-                        
-                        result.data.forEach(row => {
-                            resultsHTML += '<tr>';
-                            result.columns.forEach(col => {
-                                let value = row[col] !== null && row[col] !== undefined ? row[col] : 'NULL';
-                                resultsHTML += `<td>${value}</td>`;
+                        // Render rows
+                        let bodyHtml = '';
+                        if (data.data.length === 0) {
+                            bodyHtml = `<tr><td colspan="${data.columns.length}" class="px-6 py-8 text-center text-slate-500">No results found</td></tr>`;
+                        } else {
+                            data.data.forEach(row => {
+                                bodyHtml += '<tr class="hover:bg-slate-800/80 transition-colors">';
+                                data.columns.forEach(col => {
+                                    bodyHtml += `<td class="px-6 py-4 whitespace-nowrap text-slate-300">${row[col] !== null ? row[col] : '<span class="text-slate-600 italic">null</span>'}</td>`;
+                                });
+                                bodyHtml += '</tr>';
                             });
-                            resultsHTML += '</tr>';
-                        });
+                        }
+                        tableBody.innerHTML = bodyHtml;
                         
-                        resultsHTML += '</tbody></table></div>';
+                        // Show results with animation
+                        resultsContainer.classList.remove('hidden');
+                        setTimeout(() => resultsContainer.classList.add('opacity-100'), 50);
+                    } else {
+                        // Show error
+                        errorText.textContent = data.error || 'An unknown error occurred.';
+                        if (data.sql_query) {
+                            errorSqlContainer.textContent = data.sql_query;
+                            errorSqlContainer.classList.remove('hidden');
+                        } else {
+                            errorSqlContainer.classList.add('hidden');
+                        }
+                        errorMessage.classList.remove('hidden');
                     }
-                    
-                    resultsHTML += '</div>';
-                    resultsDiv.innerHTML = resultsHTML;
-                } else {
-                    resultsDiv.innerHTML = `<div class="error">Error: ${result.error}</div>`;
+                } catch (err) {
+                    errorText.textContent = `Network or server error: ${err.message}`;
+                    errorSqlContainer.classList.add('hidden');
+                    errorMessage.classList.remove('hidden');
+                } finally {
+                    // Reset loading state
+                    loadingIndicator.classList.add('hidden');
+                    loadingIndicator.classList.remove('flex');
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('opacity-70');
                 }
-            } catch (error) {
-                resultsDiv.innerHTML = `<div class="error">Error processing query: ${error.message}</div>`;
-            }
-        }
-
-        async function loadVizData() {
-            const tableName = document.getElementById('viz-table-select').value;
-            
-            if (!tableName) {
-                alert('Please select a table first.');
-                return;
-            }
-            
-            try {
-                const response = await fetch('/api/table-data', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ table_name: tableName, limit: 1000 })
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    currentTableData = result.data;
-                    currentTableColumns = result.columns;
-                    setupVizOptions(tableName);
-                } else {
-                    alert('Error loading visualization data: ' + result.error);
-                }
-            } catch (error) {
-                alert('Error loading visualization data: ' + error.message);
-            }
-        }
-
-        function setupVizOptions(tableName) {
-            const vizOptionsDiv = document.getElementById('viz-options');
-            const vizInputsDiv = document.getElementById('viz-inputs');
-            
-            if (!tableName || !currentTableColumns) {
-                vizOptionsDiv.style.display = 'none';
-                return;
-            }
-            
-            const vizType = document.getElementById('viz-type').value;
-            vizInputsDiv.innerHTML = '';
-            
-            switch(vizType) {
-                case '3d_scatter':
-                    vizInputsDiv.innerHTML = `
-                        <div class="input-group">
-                            <label for="viz-x">X-Axis Column:</label>
-                            <select id="viz-x">
-                                ${currentTableColumns.map(col => `<option value="${col}">${col}</option>`).join('')}
-                            </select>
-                        </div>
-                        <div class="input-group">
-                            <label for="viz-y">Y-Axis Column:</label>
-                            <select id="viz-y">
-                                ${currentTableColumns.map(col => `<option value="${col}">${col}</option>`).join('')}
-                            </select>
-                        </div>
-                        <div class="input-group">
-                            <label for="viz-z">Z-Axis Column:</label>
-                            <select id="viz-z">
-                                ${currentTableColumns.map(col => `<option value="${col}">${col}</option>`).join('')}
-                            </select>
-                        </div>
-                        <div class="input-group">
-                            <label for="viz-color">Color By (Optional):</label>
-                            <select id="viz-color">
-                                <option value="">None</option>
-                                ${currentTableColumns.map(col => `<option value="${col}">${col}</option>`).join('')}
-                            </select>
-                        </div>
-                    `;
-                    break;
-                    
-                case 'bar':
-                case 'pie':
-                    vizInputsDiv.innerHTML = `
-                        <div class="input-group">
-                            <label for="viz-category">Category Column:</label>
-                            <select id="viz-category">
-                                ${currentTableColumns.map(col => `<option value="${col}">${col}</option>`).join('')}
-                            </select>
-                        </div>
-                        <div class="input-group">
-                            <label for="viz-value">Value Column:</label>
-                            <select id="viz-value">
-                                ${currentTableColumns.map(col => `<option value="${col}">${col}</option>`).join('')}
-                            </select>
-                        </div>
-                    `;
-                    break;
-                    
-                case 'radar':
-                    vizInputsDiv.innerHTML = `
-                        <div class="input-group">
-                            <label for="viz-category">Category Column:</label>
-                            <select id="viz-category">
-                                ${currentTableColumns.map(col => `<option value="${col}">${col}</option>`).join('')}
-                            </select>
-                        </div>
-                        <div class="input-group">
-                            <label for="viz-values">Value Columns (Select Multiple):</label>
-                            <select id="viz-values" multiple style="height: 120px;">
-                                ${currentTableColumns.map(col => `<option value="${col}">${col}</option>`).join('')}
-                            </select>
-                        </div>
-                    `;
-                    break;
-                    
-                case 'heatmap':
-                    vizInputsDiv.innerHTML = `
-                        <div class="input-group">
-                            <label for="viz-x">X-Axis Column:</label>
-                            <select id="viz-x">
-                                ${currentTableColumns.map(col => `<option value="${col}">${col}</option>`).join('')}
-                            </select>
-                        </div>
-                        <div class="input-group">
-                            <label for="viz-y">Y-Axis Column:</label>
-                            <select id="viz-y">
-                                ${currentTableColumns.map(col => `<option value="${col}">${col}</option>`).join('')}
-                            </select>
-                        </div>
-                        <div class="input-group">
-                            <label for="viz-value">Value Column:</label>
-                            <select id="viz-value">
-                                ${currentTableColumns.map(col => `<option value="${col}">${col}</option>`).join('')}
-                            </select>
-                        </div>
-                    `;
-                    break;
-            }
-            
-            vizOptionsDiv.style.display = 'block';
-        }
-
-        async function generateVisualization() {
-            const vizType = document.getElementById('viz-type').value;
-            const plotDiv = document.getElementById('plotly-chart');
-            
-            plotDiv.innerHTML = '<div class="loading"><div class="spinner"></div>Generating visualization...</div>';
-            
-            try {
-                const options = {};
-                
-                switch(vizType) {
-                    case '3d_scatter':
-                        options.x_col = document.getElementById('viz-x').value;
-                        options.y_col = document.getElementById('viz-y').value;
-                        options.z_col = document.getElementById('viz-z').value;
-                        options.color_col = document.getElementById('viz-color').value || undefined;
-                        break;
-                        
-                    case 'bar':
-                    case 'pie':
-                        options.x_col = document.getElementById('viz-category').value;
-                        options.y_col = document.getElementById('viz-value').value;
-                        break;
-                        
-                    case 'radar':
-                        options.categories_col = document.getElementById('viz-category').value;
-                        options.values_cols = Array.from(document.getElementById('viz-values').selectedOptions).map(opt => opt.value);
-                        break;
-                        
-                    case 'heatmap':
-                        options.x_col = document.getElementById('viz-x').value;
-                        options.y_col = document.getElementById('viz-y').value;
-                        options.values_col = document.getElementById('viz-value').value;
-                        break;
-                }
-                
-                const response = await fetch('/api/visualize', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        type: vizType,
-                        data: currentTableData,
-                        options: options
-                    })
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    const plotJson = JSON.parse(result.plot_json);
-                    Plotly.newPlot('plotly-chart', plotJson.data, plotJson.layout, { responsive: true });
-                } else {
-                    plotDiv.innerHTML = `<div class="error">Error generating visualization: ${result.error}</div>`;
-                }
-            } catch (error) {
-                plotDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
-            }
-        }
-
-        function openModal() {
-            document.getElementById('detail-modal').style.display = 'flex';
-        }
-
-        function closeModal() {
-            document.getElementById('detail-modal').style.display = 'none';
-        }
-
-        // Update visualization options when type changes
-        document.getElementById('viz-type').addEventListener('change', function() {
-            const tableName = document.getElementById('viz-table-select').value;
-            if (tableName && currentTableColumns) {
-                setupVizOptions(tableName);
-            }
+            });
         });
     </script>
 </body>
